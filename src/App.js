@@ -37,6 +37,7 @@ const App = () => {
           }
 
           if (month) {
+            let firstDay = day1;
             if (month.length === 1) {
               if (month1 !== '0') {
                 if (monthSplash) {
@@ -57,15 +58,40 @@ const App = () => {
               if (+month > 12) {
                 finalValue.push(String(month1).padStart(2, '0'));
                 finalValue.push('/');
-                finalValue.push(month2);
+
+                firstDay = month2;
               } else {
                 finalValue.push(month);
                 finalValue.push(monthSplash || '/');
               }
             }
+
+            if (firstDay) {
+              const date = moment(finalValue.join(''), 'YYYY/MM');
+              const numberOfDay = date.daysInMonth();
+              if (+firstDay * 10 > numberOfDay) {
+                finalValue.push(String(firstDay).padStart(2, '0'));
+                event.target.value = finalValue.join('');
+                return;
+              } else {
+                finalValue.push(firstDay);
+              }
+              if (firstDay === '0') {
+                if (day2 === '0') {
+                  event.target.value = finalValue.join('');
+                  return;
+                }
+              }
+              finalValue.push(day2 || '');
+
+              if (String((firstDay || '') + (day2 || '')).length === 2) {
+                const validDate = moment(finalValue.join(''), 'YYYY/MM/DD', true).format('YYYY/MM/DD');
+                event.target.value = validDate;
+                return;
+              }
+            }
           }
         }
-
         event.target.value = finalValue.join('');
       }
       return;
@@ -78,8 +104,15 @@ const App = () => {
     }
   }
 
+  const onBlur = (event) => {
+    const { value } = event.target;
+    const validDate = moment(value, ['YYYY/MM/D', 'YYYY/MM/DD', 'YYYY/M/D', 'YYYY/M/DD'], true).format('YYYY/MM/DD');
+
+    event.target.value = validDate;
+  }
+
   return <div>
-    <input onChange={onChange} />
+    <input onChange={onChange} onBlur={onBlur} placeholder="YYYY/MM/DD" />
   </div>
 };
 
