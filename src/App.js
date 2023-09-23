@@ -1,38 +1,86 @@
-import { useEffect } from 'react';
-import axios from 'axios';
+import moment from "moment";
+
+const dateFormat = /^(\d{0,4})(\/)?((\d{1})(\d{1})?)?(\/)?((\d{1})(\d{1})?)?/gm;
+const dateExe = /^(\d{4})(\/)?((\d{1})(\d{1})?)?(\/)?((\d{1})(\d{1})?)?/gm;
 
 const App = () => {
-  const callAPI = () => {
-    let data = JSON.stringify({
-      "idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImFhMDhlN2M3ODNkYjhjOGFjNGNhNzJhZjdmOWRkN2JiMzk4ZjE2ZGMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vbmV3am9iczI0NyIsImF1ZCI6Im5ld2pvYnMyNDciLCJhdXRoX3RpbWUiOjE2OTU0NjU2ODMsInVzZXJfaWQiOiJaaXJUaVFZWUM1VFNxTUkxYVJSajZyVmRyZFMyIiwic3ViIjoiWmlyVGlRWVlDNVRTcU1JMWFSUmo2clZkcmRTMiIsImlhdCI6MTY5NTQ2NTY4MywiZXhwIjoxNjk1NDY5MjgzLCJwaG9uZV9udW1iZXIiOiIrMTk4NzY1NDMyMTgiLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7InBob25lIjpbIisxOTg3NjU0MzIxOCJdfSwic2lnbl9pbl9wcm92aWRlciI6InBob25lIn19.Vk4ZfBxFBbGhVJpmMticKj5qz2fE3v07Bmsqa4_MEjAexf9AiW_Y58e9XU1NXxTlv2BfqiwJF1ufTeSYydh5IbaZfl7yuDPb4FGp_muEbC-Y6D6vA1bzgcgLKy_A__OFdAAPW70rADO3x26OZrz--v2uf4b8CUN5nUOcZAqoXUKWGZSyngMEmJc26TJQucruOuUPmakxwWPmtKdirI4yMaOv74AAcus-7j23PLxfBVzRBZ3gp2Zi31IQe-NxXKgUclWVCzsL8v2rWZuVT54g3SvUpP53V2UEfqsT75EFNY7B19EBcwTttStzcjt1g9i9mvAzlYSMv_7ncqflaIGj4g",
-      "firebase_uid": "ZirTiQYYC5TSqMI1aRRj6rVdrdS2",
-      "phone": "+19876543218",
-      "lang": "en"
-    });
+  const onChange = (event) => {
+    const { data, inputType } = event.nativeEvent;
 
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: 'https://dev.eship50.com/api/v1/login-by-phone',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: data
-    };
+    console.log('data: ', data, inputType);
+    const value = event.target.value;
 
-    axios.request(config)
-      .then((response) => {
-        console.log(JSON.stringify(response.data));
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    // remove leading zero
+    const removeLeadingZero = value.replace(/^0|^\//gm, '');
+
+    // remove double splash
+    const removeDbSplash = removeLeadingZero.replace(/\/\//gm, '/');
+
+    // remove character that are not number or splash
+    const removeNotDigitOrSplash = removeDbSplash.replace(/[^0-9\/]/, '');
+
+    // prevent input over format
+    const preventInputOver = (removeNotDigitOrSplash.match(dateFormat) || []).join('');
+
+    const [_, year, yearSplash, month, month1, month2, monthSplash, day, day1, day2] = new RegExp(dateFormat).exec(preventInputOver) || [];
+
+    console.log({ _, year, yearSplash, month, month1, month2, monthSplash, day, day1, day2 });
+
+    if (/^insert/gm.test(inputType)) {
+      if (_) {
+        const finalValue = [];
+
+        if (year) {
+          finalValue.push(year);
+          if (year.length === 4) {
+            finalValue.push(yearSplash || '/');
+          }
+
+          if (month) {
+            if (month.length === 1) {
+              if (month1 !== '0') {
+                if (monthSplash) {
+                  finalValue.push(String(month1).padStart(2, '0'));
+                  finalValue.push(monthSplash);
+                } else {
+                  finalValue.push(month1);
+                }
+              } else {
+                finalValue.push(month1);
+                if (monthSplash) {
+                  event.target.value = finalValue.join('');
+                  return;
+                }
+              }
+            }
+            if (month.length === 2) {
+              if (+month > 12) {
+                finalValue.push(String(month1).padStart(2, '0'));
+                finalValue.push('/');
+                finalValue.push(month2);
+              } else {
+                finalValue.push(month);
+                finalValue.push(monthSplash || '/');
+              }
+            }
+          }
+        }
+
+        event.target.value = finalValue.join('');
+      }
+      return;
+    }
+
+    if (!_) {
+      event.target.value = preventInputOver.replace(/[^0-9]/, '');
+    } else {
+      event.target.value = preventInputOver.replace(/\/\//gm, '/');
+    }
   }
 
-  useEffect(() => {
-    callAPI();
-  }, []);
-  return <div>test</div>
+  return <div>
+    <input onChange={onChange} />
+  </div>
 };
 
 export default App;
