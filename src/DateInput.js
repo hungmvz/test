@@ -2,13 +2,12 @@ import moment from "moment";
 import { useMemo } from "react";
 
 const dateFormat = /^(\d{0,4})(\/)?((\d{1})(\d{1})?)?(\/)?((\d{1})(\d{1})?)?/gm;
-const dateExe = /^(\d{4})(\/)?((\d{1})(\d{1})?)?(\/)?((\d{1})(\d{1})?)?/gm;
 
 const DateInput = ({ value, placeholder, onValueChange }) => {
     const defaultValue = useMemo(() => value, [value]);
 
     const onChange = (event) => {
-        const { data, inputType } = event.nativeEvent;
+        const { inputType } = event.nativeEvent;
 
         const value = event.target.value;
 
@@ -24,9 +23,8 @@ const DateInput = ({ value, placeholder, onValueChange }) => {
         // prevent input over format
         const preventInputOver = (removeNotDigitOrSplash.match(dateFormat) || []).join('');
 
-        const [_, year, yearSplash, month, month1, month2, monthSplash, day, day1, day2] = new RegExp(dateFormat).exec(preventInputOver) || [];
+        const [_, year, yearSplash, month, month1, month2, monthSplash, , day1, day2] = new RegExp(dateFormat).exec(preventInputOver) || [];
 
-        console.log({ year, yearSplash, month, month1, month2, monthSplash, day, day1, day2 });
         if (/^insert/gm.test(inputType)) {
             if (_) {
                 const finalValue = [];
@@ -133,7 +131,7 @@ const DateInput = ({ value, placeholder, onValueChange }) => {
     }
 
     return <div>
-        <input defaultValue={defaultValue} onBlur={onBlur} onChange={onChange} placeholder={placeholder} />
+        <input value={defaultValue} onBlur={onBlur} onChange={onChange} placeholder={placeholder} />
     </div>
 }
 
