@@ -34,79 +34,81 @@ const DateInput = ({ value, placeholder, onValueChange }) => {
                     if (year.length === 4) {
                         finalValue.push(yearSplash || '/');
                     }
+                }
 
-                    if (month) {
-                        let firstDay = day1;
-                        let secondDay = day2;
+                let firstDay = day1;
+                let secondDay = day2;
 
-                        const monthLength = month.length;
+                if (month) {
+                    const monthLength = month.length;
 
-                        if (monthLength === 1) {
-                            if (month1 === '0' && monthSplash) {
-                                finalValue.push(month1);
-                                event.target.value = finalValue.join('');
-                                onValueChange(finalValue.join(''));
-                                return;
-                            }
-                            if (monthSplash || +month1 > 1) {
-                                finalValue.push(String(month1).padStart(2, '0'));
-                                finalValue.push(monthSplash || '/');
-                            } else {
-                                finalValue.push(month1);
-                            }
+                    if (monthLength === 1) {
+                        if (month1 === '0' && monthSplash) {
+                            finalValue.push(month1);
+                            event.target.value = finalValue.join('');
+                            onValueChange(finalValue.join(''));
+                            return;
                         }
-
-                        if (monthLength === 2) {
-                            if (month1 === '0' && month2 === '0') {
-                                finalValue.push(month1);
-                                event.target.value = finalValue.join('');
-                                onValueChange(finalValue.join(''));
-                                return;
-                            }
-                            if (+month > 12) {
-                                finalValue.push(String(month1).padStart(2, '0'));
-                                finalValue.push(monthSplash || '/');
-                                firstDay = month2;
-                            } else {
-                                finalValue.push(month);
-                                finalValue.push(monthSplash || '/');
-                            }
+                        if (monthSplash || +month1 > 1) {
+                            finalValue.push(String(month1).padStart(2, '0'));
+                            finalValue.push(monthSplash || '/');
+                        } else {
+                            finalValue.push(month1);
                         }
+                    }
 
-                        if (firstDay) {
-                            const date = moment(finalValue.join(''), 'YYYY/MM');
-                            const numberOfDay = date.daysInMonth();
-
-                            if (firstDay === '0' && day2 === '0') {
-                                event.target.value = finalValue.join('');
-                                onValueChange(finalValue.join(''));
-                                return;
-                            }
-
-                            if (+firstDay * 10 > numberOfDay) {
-                                finalValue.push(String(firstDay).padStart(2, '0'));
-                                event.target.value = finalValue.join('');
-
-                                firstDay = '0';
-                                secondDay = firstDay;
-                            } else {
-                                finalValue.push(firstDay);
-                            }
-
-                            finalValue.push(day2 || '');
-
-                            if (String(firstDay + secondDay).length === 2) {
-                                const validDate = moment(finalValue.join(''), ['YYYY/M/DD'], true).format('YYYY/MM/DD');
-
-                                event.target.value = validDate;
-
-                                onValueChange(validDate);
-
-                                return;
-                            }
+                    if (monthLength === 2) {
+                        if (month1 === '0' && month2 === '0') {
+                            finalValue.push(month1);
+                            event.target.value = finalValue.join('');
+                            onValueChange(finalValue.join(''));
+                            return;
+                        }
+                        if (+month > 12) {
+                            finalValue.push(String(month1).padStart(2, '0'));
+                            finalValue.push(monthSplash || '/');
+                            firstDay = month2;
+                        } else {
+                            finalValue.push(month);
+                            finalValue.push(monthSplash || '/');
                         }
                     }
                 }
+
+                if (firstDay) {
+                    const date = moment(finalValue.join(''), 'YYYY/MM');
+                    const numberOfDay = date.daysInMonth();
+
+                    if (firstDay === '0' && secondDay === '0') {
+                        finalValue.push(firstDay);
+                        event.target.value = finalValue.join('');
+                        onValueChange(finalValue.join(''));
+                        return;
+                    }
+
+                    if (+firstDay * 10 > numberOfDay) {
+                        finalValue.push(String(firstDay).padStart(2, '0'));
+                        event.target.value = finalValue.join('');
+
+                        firstDay = '0';
+                        secondDay = firstDay;
+                    } else {
+                        finalValue.push(firstDay);
+                    }
+
+                    finalValue.push(secondDay || '');
+
+                    if (String(firstDay + secondDay).length === 2) {
+                        const validDate = moment(finalValue.join(''), ['YYYY/M/DD'], true).format('YYYY/MM/DD');
+
+                        event.target.value = validDate;
+
+                        onValueChange(validDate);
+
+                        return;
+                    }
+                }
+
                 onValueChange(finalValue.join(''));
                 event.target.value = finalValue.join('');
             }
