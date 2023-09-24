@@ -1,7 +1,7 @@
 import moment from "moment";
 import { useMemo } from "react";
 
-const dateFormat = /^(\d{0,4})(\/)?((\d{1})(\d{1})?)?(\/)?((\d{1})(\d{1})?)?/gm;
+const dateFormat = /^(\d{0,4})(\/)?(\d{0,2})(\/)?(\d{0,2})/gm;
 
 const DateInput = ({ value, placeholder, onValueChange }) => {
     const defaultValue = useMemo(() => value, [value]);
@@ -23,8 +23,9 @@ const DateInput = ({ value, placeholder, onValueChange }) => {
         // prevent input over format
         const preventInputOver = (removeNotDigitOrSplash.match(dateFormat) || []).join('');
 
-        const [_, year, yearSplash, month, month1, month2, monthSplash, , day1, day2] = new RegExp(dateFormat).exec(preventInputOver) || [];
+        const [_, year, yearSplash, month, monthSplash, day, day1, day2] = new RegExp(dateFormat).exec(preventInputOver) || [];
 
+        // console.log({ year, yearSplash, month, monthSplash, day1, day2 })
         if (/^insert/gm.test(inputType)) {
             if (_) {
                 const finalValue = [];
@@ -36,70 +37,58 @@ const DateInput = ({ value, placeholder, onValueChange }) => {
                     }
                 }
 
-                let firstDay = day1;
-                let secondDay = day2;
+                let remainMonth = '';
 
                 if (month) {
-                    const monthLength = month.length;
+                    // remove 00 or 0/ by 0 (prevent input double zero or splash after zero)
+                    const m = [month].join('').replace(/^00|^0\//gm, '0');
+
+                    const m1 = m[0];
+                    const m2 = m[1];
+
+                    const monthLength = m.length;
 
                     if (monthLength === 1) {
-                        if (month1 === '0' && monthSplash) {
-                            finalValue.push(month1);
-                            event.target.value = finalValue.join('');
-                            onValueChange(finalValue.join(''));
-                            return;
-                        }
-                        if (monthSplash || +month1 > 1) {
-                            finalValue.push(String(month1).padStart(2, '0'));
+                        if (+m1 > 1) {
+                            finalValue.push(String(m1).padStart(2, '0'));
                             finalValue.push(monthSplash || '/');
                         } else {
-                            finalValue.push(month1);
+                            finalValue.push(m1);
                         }
                     }
 
                     if (monthLength === 2) {
-                        if (month1 === '0' && month2 === '0') {
-                            finalValue.push(month1);
-                            event.target.value = finalValue.join('');
-                            onValueChange(finalValue.join(''));
-                            return;
-                        }
-                        if (+month > 12) {
-                            finalValue.push(String(month1).padStart(2, '0'));
+                        if (+m > 12) {
+                            finalValue.push(String(m1).padStart(2, '0'));
                             finalValue.push(monthSplash || '/');
-                            firstDay = month2;
+                            remainMonth = m2;
                         } else {
-                            finalValue.push(month);
+                            finalValue.push(m);
                             finalValue.push(monthSplash || '/');
                         }
                     }
                 }
 
-                if (firstDay) {
+                if (remainMonth || day) {
                     const date = moment(finalValue.join(''), 'YYYY/MM');
                     const numberOfDay = date.daysInMonth();
 
-                    if (firstDay === '0' && secondDay === '0') {
-                        finalValue.push(firstDay);
-                        event.target.value = finalValue.join('');
-                        onValueChange(finalValue.join(''));
-                        return;
-                    }
+                    // remove double zero
+                    const d = [day].join('').replace(/^00/gm, '0');
+
+                    let firstDay = remainMonth || d[0];
+                    let secondDay = d[1];
 
                     if (+firstDay * 10 > numberOfDay) {
-                        finalValue.push(String(firstDay).padStart(2, '0'));
-                        event.target.value = finalValue.join('');
-
-                        firstDay = '0';
                         secondDay = firstDay;
-                    } else {
-                        finalValue.push(firstDay);
+                        firstDay = '0';
                     }
 
+                    finalValue.push(firstDay || '');
                     finalValue.push(secondDay || '');
 
-                    if (String(firstDay + secondDay).length === 2) {
-                        const validDate = moment(finalValue.join(''), ['YYYY/M/DD'], true).format('YYYY/MM/DD');
+                    if (d.length === 2) {
+                        const validDate = moment(finalValue.join(''), ['YYYY/MM/DD'], true).format('YYYY/MM/DD');
 
                         event.target.value = validDate;
 
@@ -109,8 +98,8 @@ const DateInput = ({ value, placeholder, onValueChange }) => {
                     }
                 }
 
-                onValueChange(finalValue.join(''));
                 event.target.value = finalValue.join('');
+                onValueChange(finalValue.join(''));
             }
             return;
         }
@@ -125,11 +114,13 @@ const DateInput = ({ value, placeholder, onValueChange }) => {
 
     const onBlur = (event) => {
         const { value } = event.target;
-        const validDate = moment(value, ['YYYY/MM/D', 'YYYY/MM/DD', 'YYYY/M/D', 'YYYY/M/DD'], true).format('YYYY/MM/DD');
+        if (value) {
+            const validDate = moment(value, ['YYYY/MM/D', 'YYYY/MM/DD', 'YYYY/M/D', 'YYYY/M/DD'], true).format('YYYY/MM/DD');
 
-        event.target.value = validDate;
+            event.target.value = validDate;
 
-        onValueChange(validDate);
+            onValueChange(validDate);
+        }
     }
 
     return <div>
