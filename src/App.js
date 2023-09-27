@@ -16,7 +16,7 @@ const App = () => {
     flexDirection: 'column',
     height: '100vh',
   }}>
-    <DateInput2 value={value} format="YYYY/MM/DD" placeholder='YYYY/MM/DD' onValueChange={handleDateInputValueChange} />
+    <DateInput2 value={value} format="MM/DD/YYYY" placeholder='YYYY/MM/DD' onValueChange={handleDateInputValueChange} />
     Date value: {value}
 
     <br></br>
