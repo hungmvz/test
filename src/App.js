@@ -1,5 +1,6 @@
 import { useState } from "react";
 import DateInput from "./DateInput";
+import DateInput2 from "./DateInput2";
 
 const App = () => {
   const [value, setValue] = useState('');
@@ -15,7 +16,7 @@ const App = () => {
     flexDirection: 'column',
     height: '100vh',
   }}>
-    <DateInput value={value} placeholder='YYYY/MM/DD' onValueChange={handleDateInputValueChange} />
+    <DateInput2 value={value} format="YYYY/MM/DD" placeholder='YYYY/MM/DD' onValueChange={handleDateInputValueChange} />
     Date value: {value}
 
     <br></br>
