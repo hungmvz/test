@@ -1,14 +1,13 @@
-import moment from "moment";
 import { useMemo } from "react";
 
 const YYYYMMDD = "YYYY/MM/DD";
 const MMDDYYYY = "MM/DD/YYYY";
-
-const YYYY = /^(\d{0,4})(\/)?(\d{0,2})(\/)?(\d{0,2})/gm;
+const DDMMYYYY = "DD/MM/YYYY";
 
 const dateFormat = {
   [YYYYMMDD]: /^(\d{0,4})(\/)?(\d{0,2})(\/)?(\d{0,2})/gm,
-  [MMDDYYYY]: /^(\d{0,2})(\/)?(\d{0,2})(\/)?(\d{0,4})/gm
+  [MMDDYYYY]: /^(\d{0,2})(\/)?(\d{0,2})(\/)?(\d{0,4})/gm,
+  [DDMMYYYY]: /^(\d{0,2})(\/)?(\d{0,2})(\/)?(\d{0,4})/gm
 };
 
 const DateInput2 = ({ value, format, placeholder, onValueChange }) => {
@@ -25,6 +24,27 @@ const DateInput2 = ({ value, format, placeholder, onValueChange }) => {
           monthSplash,
           day,
           daySplash,
+          year,
+          yearSplash
+        ] = new RegExp(regex).exec(input);
+        return {
+          _,
+          day,
+          daySplash,
+          month,
+          monthSplash,
+          year,
+          yearSplash,
+          full: input
+        };
+      }
+      case DDMMYYYY: {
+        const [
+          _,
+          day,
+          daySplash,
+          month,
+          monthSplash,
           year,
           yearSplash
         ] = new RegExp(regex).exec(input);
@@ -79,18 +99,20 @@ const DateInput2 = ({ value, format, placeholder, onValueChange }) => {
       return {};
     }
     // remove 00 or 0/ by 0 (prevent input double zero or splash after zero)
-    const m = [input].join("").replace(/^00|^0\//gm, "0");
+    let m = [input].join("").replace(/^00|^0\//gm, "0");
+
+    if (!splashAllowed && splash) {
+      m = m.replace(/\//gm, "");
+    }
 
     const m1 = m[0];
     const m2 = m[1];
 
     const monthLength = m.length;
-
     if (monthLength === 1) {
-      if (+m1 > 1) {
+      if (+m1 > 1 || (+m1 > 0 && splash)) {
         return {
-          month:
-            String(m1).padStart(2, "0") + (splashAllowed ? splash || "/" : "")
+          month: String(m1).padStart(2, "0") + (splash || "/")
         };
       } else {
         return {
@@ -116,12 +138,21 @@ const DateInput2 = ({ value, format, placeholder, onValueChange }) => {
 
   const handleChangeDay = (input = "", splashAllowed, splash) => {
     // remove double zero
-    const d = [input].join("").replace(/^00/gm, "0");
+    let d = [input].join("").replace(/^00/gm, "0");
+
+    if (!splashAllowed && splash) {
+      d = d.replace(/\//gm, "");
+    }
 
     let firstDay = d[0];
     let secondDay = d[1];
 
     const result = [];
+    const dayLength = d.length;
+    if (+firstDay > 0 && dayLength === 1 && splash) {
+      result.push(String(firstDay).padStart(2, "0") + splash);
+      return result.join("");
+    }
     result.push(firstDay || "");
     result.push(secondDay || "");
 
@@ -157,7 +188,6 @@ const DateInput2 = ({ value, format, placeholder, onValueChange }) => {
     } =
       getDataByFormat(removeNotDigitOrSplash, format) || [];
 
-    console.log({ dayInput, monthInput, yearInput });
     if (/^insert/gm.test(inputType)) {
       if (_) {
         const values = [];
@@ -226,8 +256,6 @@ const DateInput2 = ({ value, format, placeholder, onValueChange }) => {
 
     if (!_) {
       event.target.value = full.replace(/[^0-9]/, "");
-    } else {
-      event.target.value = full.replace(/\/\//gm, "/");
     }
     onValueChange(event.target.value);
   };
