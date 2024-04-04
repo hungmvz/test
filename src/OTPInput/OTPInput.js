@@ -2,6 +2,7 @@ import clsx from "clsx";
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -193,6 +194,24 @@ const OTPInput = forwardRef((props, ref) => {
     [handleClearOTPInput, handleFocusOTPInput]
   );
 
+  useEffect(() => {
+    // Detect feature support via OTPCredential availability
+    if ("OTPCredential" in window) {
+      const ac = new AbortController();
+      navigator.credentials
+      .get({
+        otp: { transport: ["sms"] },
+          signal: ac.signal
+        })
+        .then(otp => {
+          setValue(otp.code);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+  }, []);
+
   return (
     <div
       id="OTPInput_common_component_wrapper"
@@ -221,7 +240,7 @@ const OTPInput = forwardRef((props, ref) => {
           onKeyDown={handleKeyDown}
         />
         <p>
-          <span>{JSON.stringify(state)}</span>
+          <span>{value}</span>
         </p>
       </div>
     </div>
